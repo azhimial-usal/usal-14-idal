@@ -39,7 +39,6 @@ class StorageService:
             blob_name = f"{timestamp.year}/{timestamp.month:02d}/{timestamp.day:02d}/{document_id}.json"
             
             container_client = self.client.get_container_client(container_name)
-            
             blob_data = json.dumps(transaction_data, indent=2, default=str)
             container_client.upload_blob(blob_name, blob_data, overwrite=True)
             
@@ -48,6 +47,28 @@ class StorageService:
         
         except Exception as e:
             logger.error(f"Error saving transaction to storage: {str(e)}")
+            raise
+    
+    async def save_risk_analysis(self, analysis_data: Dict[str, Any], analysis_id: str) -> Optional[str]:
+        """Save risk analysis to Azure Storage"""
+        if not self.client:
+            logger.warning("Storage service not configured, skipping save")
+            return None
+        
+        try:
+            timestamp = datetime.utcnow()
+            container_name = "risk-analysis"
+            blob_name = f"{timestamp.year}/{timestamp.month:02d}/{timestamp.day:02d}/{analysis_id}.json"
+            
+            container_client = self.client.get_container_client(container_name)
+            blob_data = json.dumps(analysis_data, indent=2, default=str)
+            container_client.upload_blob(blob_name, blob_data, overwrite=True)
+            
+            logger.info(f"Saved risk analysis to {blob_name}")
+            return f"{container_name}/{blob_name}"
+        
+        except Exception as e:
+            logger.error(f"Error saving risk analysis: {str(e)}")
             raise
     
     async def save_batch_results(self, batch_data: Dict[str, Any], batch_id: str) -> Optional[str]:
@@ -62,7 +83,6 @@ class StorageService:
             blob_name = f"{timestamp.year}/{timestamp.month:02d}/{timestamp.day:02d}/batch-{batch_id}.json"
             
             container_client = self.client.get_container_client(container_name)
-            
             blob_data = json.dumps(batch_data, indent=2, default=str)
             container_client.upload_blob(blob_name, blob_data, overwrite=True)
             

@@ -8,7 +8,7 @@ from datetime import datetime
 import os
 
 from app.config import Settings
-from app.routes import health, analyze, transcribe, chat, documents
+from app.routes import health, analyze, transcribe, chat, documents, risk_analysis
 from app.services.openai_service import OpenAIService
 from app.utils.logging_config import setup_logging
 
@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     global openai_service
     
     # Startup
-    logger.info("Starting up GPT-5.6 Multimodal API")
+    logger.info("Starting up GPT-5.6 Multimodal API with Risk Analysis")
     openai_service = OpenAIService(
         api_key=settings.openai_api_key,
         model=settings.model_name
@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title="GPT-5.6 Multimodal API",
-    description="Multimodal AI service integrating OpenAI's GPT-5.6 with Azure - Support for text, audio, images, and transaction extraction",
+    description="Multimodal AI service integrating OpenAI's GPT-5.6 with Azure - Support for text, audio, images, transaction extraction, and EU risk analysis",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -63,6 +63,7 @@ app.include_router(analyze.router, prefix="/api/v1", tags=["Analysis"])
 app.include_router(transcribe.router, prefix="/api/v1", tags=["Transcription"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(documents.router, prefix="/api/v1", tags=["Document Extraction"])
+app.include_router(risk_analysis.router, prefix="/api/v1", tags=["Risk Analysis"])
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
